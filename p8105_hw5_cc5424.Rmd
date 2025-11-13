@@ -162,3 +162,85 @@ theme_minimal(base_size = 14)
 # Therefore, conditional on rejection, μ̂ is biased upward (selection bias).
 ```
 
+#problem3
+```{r}
+# 1"Describe the raw data."
+
+library(tidyverse)
+library(broom)
+
+homicide_data = read_csv("data/homicide-data.csv")
+
+glimpse(homicide_data)
+summary(homicide_data)
+
+# 说明：
+# 数据包括变量：
+# uid: 唯一标识
+# reported_date: 报案日期
+# victim_last, victim_first, victim_race, victim_age, victim_sex
+# city, state, lat, lon, disposition (案件处理状态)
+# 每一行代表一个凶杀案件。
+
+# 2"Create a city_state variable (e.g. 'Baltimore, MD')"
+
+homicide_data = homicide_data |>
+mutate(city_state = paste(city, state, sep = ", "))
+
+# 3"Summarize within cities to obtain the total number of homicides and the number of unsolved homicides (disposition is 'Closed without arrest' or 'Open/No arrest')."
+
+homicide_summary = homicide_data |>
+group_by(city_state) |>
+summarize(
+total = n(),
+unsolved = sum(disposition %in% c("Closed without arrest", "Open/No arrest"))
+)
+
+head(homicide_summary)
+
+# 4"For the city of Baltimore, MD, use prop.test to estimate the proportion of homicides that are unsolved; save the output of prop.test as an R object, apply broom::tidy, and pull the estimated proportion and confidence intervals."
+
+baltimore = homicide_summary |>
+filter(city_state == "Baltimore, MD")
+
+baltimore_test = prop.test(baltimore$unsolved, baltimore$total)
+baltimore_tidy = broom::tidy(baltimore_test)
+
+baltimore_est = baltimore_tidy |>
+select(estimate, conf.low, conf.high)
+
+baltimore_est
+
+# 5"Now run prop.test for each of the cities in your dataset, and extract both the proportion of unsolved homicides and the confidence interval for each."
+
+city_results = homicide_summary |>
+mutate(
+test = map2(unsolved, total, ~ prop.test(.x, .y) |> broom::tidy())
+) |>
+unnest(test) |>
+select(city_state, estimate, conf.low, conf.high)
+
+# 6"Create a plot that shows the estimates and CIs for each city – check out geom_errorbar for a way to add error bars based on the upper and lower limits. Organize cities according to the proportion of unsolved homicides."
+
+city_results = city_results |>
+arrange(desc(estimate)) |>
+mutate(city_state = fct_reorder(city_state, estimate))
+
+ggplot(city_results, aes(x = city_state, y = estimate)) +
+geom_point(color = "steelblue", size = 2) +
+geom_errorbar(aes(ymin = conf.low, ymax = conf.high), width = 0.3, color = "darkgray") +
+coord_flip() +
+labs(
+title = "Proportion of Unsolved Homicides by City",
+x = "City, State",
+y = "Proportion Unsolved (with 95% CI)"
+) +
+theme_minimal(base_size = 14)
+
+# 7Describe findings.
+# The proportion of unsolved cases varies significantly across cities.
+# Certain cities (e.g., Baltimore) exhibit exceptionally high rates of unsolved cases.
+# Error bars (95% CI) indicate the uncertainty in the estimates.
+
+```
+
