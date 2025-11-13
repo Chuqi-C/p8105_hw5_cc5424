@@ -235,7 +235,7 @@ title = "Proportion of Unsolved Homicides by City",
 x = "City, State",
 y = "Proportion Unsolved (with 95% CI)"
 ) +
-theme_minimal(base_size = 14)
+theme_minimal(base_size = 10)
 
 # 7Describe findings.
 # The proportion of unsolved cases varies significantly across cities.
