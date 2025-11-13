@@ -40,7 +40,7 @@ bday_sim_results =
     iter = 1:10000
   ) |>
   mutate(
-    result = map_lgl(bdays, bday_sim)
+    result = map2_lgl(bdays, iter, ~ bday_sim(.x))
   ) |>
   group_by(bdays) |>
   summarize(prob_repeat = mean(result))
@@ -58,6 +58,7 @@ bday_sim_results |>
   ) +
   theme_minimal(base_size = 14)
 ```
+Comment: The probability increases rapidly with group size, exceeding 50% when n ≈ 23, illustrating the well-known birthday paradox.
 
 #problem2
 ```{r}
