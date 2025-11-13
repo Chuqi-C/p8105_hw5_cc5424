@@ -75,8 +75,6 @@ library(broom)
 
 simulate_ttest = function(mu) {
 
-# 为每个 μ 生成 5000 个样本
-
 replicate(5000, {
 x = rnorm(n, mean = mu, sd = sigma)
 test = t.test(x, mu = 0)
@@ -100,8 +98,6 @@ sim_results = map_df(mu_values, simulate_ttest)
 power_results = sim_results |>
 group_by(mu_true) |>
 summarize(power = mean(p_value < 0.05))
-
-# 绘图（功效曲线）
 
 ggplot(power_results, aes(x = mu_true, y = power)) +
 geom_point(size = 3, color = "steelblue") +
@@ -137,8 +133,6 @@ filter(p_value < 0.05) |>
 group_by(mu_true) |>
 summarize(mean_mu_hat_reject = mean(mu_hat))
 
-# 合并两条曲线
-
 combined_avg = left_join(avg_mu_all, avg_mu_reject, by = "mu_true")
 
 ggplot(combined_avg, aes(x = mu_true)) +
@@ -173,15 +167,21 @@ homicide_data = read_csv("data/homicide-data.csv")
 
 glimpse(homicide_data)
 summary(homicide_data)
+```
+The raw homicide dataset from The Washington Post contains one record per homicide case.
+Each row represents a victim. The main variables include:
+uid: unique case identifier (e.g., "Alb-000001")
+reported_date: numeric date (YYYYMMDD) when the homicide was reported
+victim_last, victim_first: last and first name of the victim
+victim_race: recorded race of the victim
+victim_age: age of the victim
+victim_sex: sex of the victim ("Male"/"Female"/"Unknown")
+city, state: location of the homicide
+lat, lon: latitude and longitude coordinates
+disposition: final status of the case, e.g."Closed by arrest" "Closed without arrest" "Open/No arrest"
+Each record therefore describes the victim’s demographic information and whether the case was solved or remains unsolved.
 
-# 说明：
-# 数据包括变量：
-# uid: 唯一标识
-# reported_date: 报案日期
-# victim_last, victim_first, victim_race, victim_age, victim_sex
-# city, state, lat, lon, disposition (案件处理状态)
-# 每一行代表一个凶杀案件。
-
+```{r}
 # 2"Create a city_state variable (e.g. 'Baltimore, MD')"
 
 homicide_data = homicide_data |>
@@ -241,6 +241,5 @@ theme_minimal(base_size = 14)
 # The proportion of unsolved cases varies significantly across cities.
 # Certain cities (e.g., Baltimore) exhibit exceptionally high rates of unsolved cases.
 # Error bars (95% CI) indicate the uncertainty in the estimates.
-
 ```
 
